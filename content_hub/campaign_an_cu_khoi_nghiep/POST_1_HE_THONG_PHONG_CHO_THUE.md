@@ -1,3 +1,6 @@
+> **[DEPRECATED_LEGACY_EXAMPLE — KHÔNG DÙNG LÀM MẪU RULE 5]**
+> Tài liệu lưu trữ cũ trước Rule 5 (có chứa tên thương hiệu, URL và ngôn ngữ quảng bá). Mọi AI Agent phải tuân thủ Rule 5 trong `AGENTS.md` và `config/brand.json`.
+
 # CHIẾN DỊCH: AN CƯ TRỌN VẸN — NHÀ CỦA LAND (nhacualand.com)
 ## BÀI ĐĂNG SỐ 1: BẢN TUYÊN NGÔN KHÔNG GIAN SỐNG TIỆN NGHI & MINH BẠCH
 **Kênh:** Facebook Fanpage (Nhacualand) · Instagram (@nhacualand) · Threads (@nhacualand)  

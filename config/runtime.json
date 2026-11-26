@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "workspace": "D:/Facebook",
   "environment": "PRODUCTION",
   "autonomous_mode": "FULL_100",
@@ -12,6 +12,17 @@
     "instagram",
     "threads"
   ],
+  "database": {
+    "engine": "sqlite_wal",
+    "path": "D:/Facebook/data/nhacualand.db",
+    "backup_interval_hours": 6
+  },
+  "pilot_budget": {
+    "max_incremental_spend_vnd": 0,
+    "paid_provider_calls": false,
+    "allow_paid_fallback": false,
+    "alert_threshold_pct": 80
+  },
   "creative_tools": [
     "google_flow_veo_video",
     "google_flow_image_studio",
@@ -28,6 +39,7 @@
   },
   "graph_api": {
     "version": "v21.0",
+    "deprecation_date": "2027-01-21",
     "threads_version": "v1.0",
     "rate_limit_cooldown_ms": 1000
   },

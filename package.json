@@ -24,7 +24,12 @@
     "plan": "node scripts/schedule_month.js",
     "progress": "node scripts/check_progress.js",
     "check:isolation": "node scripts/verify_account_isolation.js",
+    "db:migrate": "node scripts/migrate_json_to_sqlite.js",
+    "db:backup": "node -e \"console.log('Backup:', require('./lib/db').backupDatabase())\"",
+    "report:weekly": "node scripts/weekly_report.js",
     "test": "node scripts/test_ai_pipeline.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:e2e": "node --test tests/e2e/*.test.js",
     "test:token": "node scripts/test_token.js",
     "test:playwright": "node scripts/test_playwright.js"
   },

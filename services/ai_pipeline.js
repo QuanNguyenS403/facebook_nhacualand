@@ -19,8 +19,10 @@ function getCandidateModels() {
 
 async function callGemini(prompt, systemInstruction = '') {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.warn('⚠️ Chưa cấu hình GEMINI_API_KEY trong .env. Kích hoạt bộ sinh nội dung chuẩn thương hiệu Nhà Của Land...');
+  if (!apiKey || process.env.OFFLINE_MODE === 'true') {
+    if (!apiKey) {
+      console.warn('⚠️ Chưa cấu hình GEMINI_API_KEY trong .env. Kích hoạt bộ sinh nội dung chuẩn thương hiệu Nhà Của Land...');
+    }
     return generateLocalFallback(prompt);
   }
 
@@ -107,7 +109,7 @@ function generateLocalFallback(prompt = '') {
   }
 
   const fbBody = `Tan làm mệt nhoài lại phải dắt xe đi tìm phòng trọ, ngõ ngách vừa tối vừa xa.\nChỉ mong tìm được cái phòng sáng sủa, sạch sẽ, tối về ngủ một giấc cho đã đời ngày mai còn đi cày tiếp.`;
-  const igCaption = `Đi thuê phòng chỉ mong có cái cửa sổ thoáng mát với chiếc giường êm, tối về ngả lưng là thấy nhẹ cả người.`;
+  const igCaption = `Đi thuê phòng chỉ mong có cái cửa sổ thoáng mát với chiếc giường êm. Tối về ngả lưng là thấy nhẹ cả người.`;
   const threadsCaption = `Đi thuê phòng sợ nhất là lúc vào ở tiền điện nước, tiền rác, tiền xe cộng lại đắt hơn cả tiền phòng. Cứ rõ ràng từng đồng từ đầu cho người ta nhờ.`;
 
   return JSON.stringify({
@@ -174,8 +176,8 @@ Yêu cầu xuất ra đúng JSON hợp lệ:
   "hook": "Câu mở đầu 1 dòng ngắn",
   "body": "Đoạn văn ngắn đúng 2-3 câu bình dân",
   "facebook_caption": "Caption Facebook ngắn gọn 2-4 câu từ ngữ bình dân",
-  "instagram_caption": "Caption Instagram ngắn 1-2 câu",
-  "threads_caption": "Caption Threads ngắn gọn 1-2 câu",
+  "instagram_caption": "Caption Instagram ngắn gọn đúng 2-3 câu bình dân",
+  "threads_caption": "Caption Threads ngắn gọn đúng 2-3 câu bình dân",
   "call_to_action": "",
   "hashtags": ["#phongtro", "#chothuephong"],
   "visual_prompt": "Unique English architectural interior prompt describing this specific rental space, natural lighting, clean composition, no text, no watermark",
@@ -217,9 +219,9 @@ Yêu cầu xuất ra đúng JSON hợp lệ:
  * Tạo kịch bản ShortVideo Room Tour (9:16) cho Facebook Reels, Instagram Reels & Threads
  */
 async function generateVideoScript({ concept, durationSeconds = 20 }) {
-  const prompt = `Hãy tạo kịch bản chi tiết cho video ngắn Room Tour thời lượng ${durationSeconds} giây định dạng Reels 9:16 (Facebook Reels, Instagram Reels, Threads) cho ${brand.name} (${brand.website}).
+  const prompt = `Hãy tạo kịch bản chi tiết cho video ngắn Room Tour thời lượng ${durationSeconds} giây định dạng Reels 9:16 (Facebook Reels, Instagram Reels, Threads).
 Ý tưởng: "${concept}"
-QUY TẮC CỐT LÕI: Tuyệt đối hạn chế tối đa việc thêm chữ và ký hiệu vào video tránh che khuất không gian căn phòng và gây rối mắt người xem. Ưu tiên khung hình sạch sẽ, chuyển động máy quay và âm thanh lofi/acoustic.
+QUY TẮC CỐT LÕI: Tuyệt đối hạn chế tối đa việc thêm chữ và ký hiệu vào video tránh che khuất không gian căn phòng và gây rối mắt người xem. Không nhắc tên thương hiệu, không giá cả, không CTA quảng cáo. Ưu tiên khung hình sạch sẽ, chuyển động máy quay và âm thanh lofi/acoustic.
 
 Yêu cầu xuất ra JSON hợp lệ:
 {
@@ -237,7 +239,7 @@ Yêu cầu xuất ra JSON hợp lệ:
   ],
   "soundtrack_style": "Nhạc nền lo-fi / acoustic ấm áp không lời",
   "veo_prompt": "Detailed English continuous gimbal room tour prompt for Google Veo / Omni Flash 9:16 vertical video, photorealistic, clean composition, no text, no watermark, no overlays",
-  "call_to_action": "Truy cập nhacualand.com đặt lịch xem phòng ngay!"
+  "call_to_action": ""
 }`;
 
   const raw = await callGemini(prompt, SYSTEM_PERSONA);

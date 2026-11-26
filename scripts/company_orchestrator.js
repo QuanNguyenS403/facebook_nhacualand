@@ -4,35 +4,27 @@
  * MASTER CEO ORCHESTRATOR — CÔNG TY AI AGENT NHÀ CỦA LAND (nhacualand.com)
  * Phạm vi độc lập 100%: CHỈ DUY NHẤT TẠI D:\Facebook
  *
- * Vận hành tự động hóa hoàn toàn 100% KHÔNG QUA DUYỆT TAY:
- * 1. Phòng Kế Hoạch (`lib/content-planner.js`): Chọn chủ đề truyền thông theo lịch tuần.
- * 2. Phòng Nội Dung (`services/ai_pipeline.js`): Gemini 3.8 Flash sáng tạo copy riêng cho Fanpage, Instagram, Threads.
- * 3. Phòng Kiểm Duyệt (`lib/governance.js`): Tự kiểm tra & tự phê duyệt 100%.
- * 4. Phòng Sáng Tạo Hình Ảnh & Video (`services/image_engine.js` & `services/video-engine.js`):
- *    Tự động tạo Ảnh 4K (Google Flow / Nano Banana 2.1) hoặc Video Room Tour 9:16 (Google Flow / Veo / Omni Flash).
- * 5. Phòng Xuất Bản Đa Kênh (`services/publish-executor.js`):
- *    Đăng trực tiếp lên Meta Fanpage + Instagram + Threads và lưu ảnh chụp bằng chứng!
- *
- * Cách dùng:
- *   node scripts/company_orchestrator.js                   (Chạy chu kỳ tự động hóa đầy đủ 100%)
- *   node scripts/company_orchestrator.js --health-only     (Chỉ kiểm tra sức khỏe 6 phòng ban AI)
- *   node scripts/company_orchestrator.js --media video     (Tạo Video Room Tour 9:16 & đăng cả 3 kênh)
- *   node scripts/company_orchestrator.js --media image     (Tạo Ảnh 4K & đăng cả 3 kênh)
- *   node scripts/company_orchestrator.js --dry-run         (Chạy thử toàn bộ pipeline không bấm nút đăng)
+ * Nâng cấp theo Master Plan:
+ * - Dùng chung content-planner (giờ Việt Nam Asia/Ho_Chi_Minh), không chọn slot theo UTC.
+ * - Nối Research Agent -> Agent Council -> Rule 5 Omnichannel Critic -> Studio -> Publish Executor.
+ * - Chuyển generateVideoScript.timeline thành cảnh dựng video.
+ * - Ghi trạng thái SQLite + JSON rõ ràng: PUBLISHED (đủ tất cả kênh) vs PARTIAL (lỗi 1 phần, retry riêng kênh lỗi).
+ * - Tôn trọng ngân sách pilot 0đ (max_incremental_spend_vnd = 0).
  */
 
 require('../lib/env-loader');
 const fs = require('fs');
 const path = require('path');
 const fbApi = require('../lib/facebook-api');
-const { generateMonthlyPlan, generateWeeklyPlan } = require('../lib/content-planner');
-const { generatePost } = require('../services/ai_pipeline');
-const { evaluateContent } = require('../lib/governance');
+const contentPlanner = require('../lib/content-planner');
+const { generatePost, generateVideoScript } = require('../services/ai_pipeline');
+const { evaluateOmnichannelCaptions } = require('../lib/governance');
+const { openDb } = require('../lib/db');
+const researchAgent = require('../services/research_agent');
+const agentCouncil = require('../services/agent_council');
 const imageEngine = require('../services/image_engine');
 const videoEngine = require('../services/video-engine');
-const promptArchitect = require('../services/prompt_architect');
-const { publishDirect } = require('../services/publish-executor');
-const playwrightManager = require('../services/playwright_manager');
+const { publishDirect, parseTargetPlatforms } = require('../services/publish-executor');
 const { acquireProcessLock } = require('../lib/process-lock');
 const brand = require('../config/brand.json');
 const companyConfig = require('../config/agent_company.json');
@@ -69,80 +61,41 @@ async function checkSystemHealth() {
   return { token, hasGemini, profileReady: fs.existsSync(profileDir) };
 }
 
-function pickTodaySlot(customTopic = null) {
-  if (customTopic) {
-    return {
-      pillar_name: 'Không Gian Sống & Tiện Nghi Phòng Thuê',
-      format: 'OMNICHANNEL_POST',
-      concept_hook: customTopic,
-      space_archetype_id: null
-    };
+function updateSlotStatus(slotId, status, { postTitle, mediaUrl, spaceArchetype, successfulTargets = [], failedTargets = [] } = {}) {
+  if (!slotId) return;
+  const nowIso = new Date().toISOString();
+
+  // 1. Cập nhật SQLite jobs
+  try {
+    const db = openDb();
+    db.prepare(`
+      UPDATE jobs
+      SET status = ?, updated_at = ?
+      WHERE slot_id = ?
+    `).run(status, nowIso, slotId);
+  } catch (err) {
+    console.warn(`⚠️ [DB] Không thể cập nhật job slot ${slotId}: ${err.message}`);
   }
 
+  // 2. Đồng bộ ngược JSON calendar để giữ tương thích tool cũ
   const calPath = path.resolve(__dirname, '../data/scheduled_calendar.json');
-  let plan = [];
-  if (fs.existsSync(calPath)) {
-    try {
-      const cal = JSON.parse(fs.readFileSync(calPath, 'utf8'));
-      plan = cal.plan || [];
-    } catch (e) {
-      plan = [];
-    }
-  }
-
-  if (plan.length === 0) {
-    plan = generateMonthlyPlan();
-    fs.writeFileSync(calPath, JSON.stringify({
-      domain: 'nhacualand.com',
-      brand: brand.name,
-      updated_at: new Date().toISOString(),
-      total_slots: plan.length,
-      plan
-    }, null, 2), 'utf8');
-  }
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  // 1. Lọc các slot ngày hôm nay chưa hoàn thành
-  const todaySlots = plan.filter(s => s.date === todayStr);
-  const pendingToday = todaySlots.filter(s => s.status !== 'PUBLISHED' && s.status !== 'DONE');
-
-  let chosenSlot = null;
-  if (pendingToday.length > 0) {
-    chosenSlot = pendingToday.sort((a, b) => {
-      const [ha, ma] = (a.slot_time || '12:00').split(':').map(Number);
-      const [hb, mb] = (b.slot_time || '12:00').split(':').map(Number);
-      const diffA = Math.abs((ha * 60 + ma) - currentMinutes);
-      const diffB = Math.abs((hb * 60 + mb) - currentMinutes);
-      return diffA - diffB;
-    })[0];
-  } else {
-    // 2. Nếu hôm nay đã chạy hết các ca, chọn slot tiếp theo chưa xuất bản trong lịch
-    chosenSlot = plan.find(s => s.status !== 'PUBLISHED' && s.status !== 'DONE');
-  }
-
-  return chosenSlot || plan[0];
-}
-
-function markSlotPublished(slotId, { postTitle, mediaUrl, spaceArchetype } = {}) {
-  const calPath = path.resolve(__dirname, '../data/scheduled_calendar.json');
-  if (!fs.existsSync(calPath) || !slotId) return;
+  if (!fs.existsSync(calPath)) return;
   try {
     const calendarData = JSON.parse(fs.readFileSync(calPath, 'utf8'));
     const slot = (calendarData.plan || []).find(s => s.slot_id === slotId);
     if (slot) {
-      slot.status = 'PUBLISHED';
-      slot.published_at = new Date().toISOString();
-      slot.post_title = postTitle || null;
-      slot.media_url = mediaUrl || null;
+      slot.status = status;
+      slot.published_at = status === 'PUBLISHED' ? nowIso : (slot.published_at || null);
+      slot.post_title = postTitle || slot.post_title || null;
+      slot.media_url = mediaUrl || slot.media_url || null;
       slot.space_archetype_id = spaceArchetype || slot.space_archetype_id;
+      slot.successful_targets = successfulTargets;
+      slot.failed_targets = failedTargets;
       fs.writeFileSync(calPath, JSON.stringify(calendarData, null, 2), 'utf8');
-      console.log(`📌 Đã cập nhật trạng thái lịch [${slot.slot_id} (${slot.date} ${slot.slot_time})]: ✅ PUBLISHED`);
+      console.log(`📌 Đã cập nhật trạng thái lịch [${slot.slot_id} (${slot.date} ${slot.slot_time})]: ${status}`);
     }
   } catch (err) {
-    console.warn(`⚠️ Không thể cập nhật trạng thái lịch: ${err.message}`);
+    console.warn(`⚠️ Không thể cập nhật trạng thái lịch JSON: ${err.message}`);
   }
 }
 
@@ -151,51 +104,94 @@ async function runAutonomousCycle({
   mediaMode = 'auto',
   platform = process.env.PUBLISH_TARGETS || 'all',
   dryRun = process.env.DRY_RUN === 'true',
+  offline = process.env.OFFLINE_MODE === 'true',
   force = false
 } = {}) {
   console.log('\n================================================================');
   console.log('⚡ KHỞI CHẠY CHU TRÌNH TỰ ĐỘNG HÓA 100% (ZERO-HUMAN-APPROVAL)');
   console.log('================================================================\n');
 
-  const slot = pickTodaySlot(customTopic);
+  // Xác thực kênh trước khi làm bất kỳ bước tốn tài nguyên nào
+  const validatedTargets = parseTargetPlatforms(platform);
+
+  // Chọn slot chuẩn giờ Việt Nam (Asia/Ho_Chi_Minh) qua content-planner
+  const slot = contentPlanner.pickTodaySlot(customTopic ? { customTopic } : { persist: !dryRun });
+  if (!slot) {
+    throw new Error('Không còn khung lịch nào khả dụng để thực thi.');
+  }
+
   const topic = slot.concept_hook;
   const shouldMakeVideo =
     mediaMode === 'video' ||
     (mediaMode === 'auto' && String(slot.format || '').includes('REELS'));
 
   console.log(`📌 Chủ đề thực thi: "${topic}"`);
-  console.log(`📌 Trụ cột: ${slot.pillar_name} | Loại Media: ${shouldMakeVideo ? 'VIDEO ROOM TOUR 9:16 (FLOW/VEO)' : 'ẢNH AI 4K (FLOW/NANO BANANA)'}`);
+  console.log(`📌 Trụ cột: ${slot.pillar_name} | Kênh: [${validatedTargets.join(', ')}] | Loại Media: ${shouldMakeVideo ? 'VIDEO ROOM TOUR 9:16' : 'ẢNH AI 4K'}`);
 
-  // BƯỚC 1: Sáng tạo nội dung đa kênh bằng Gemini 3.8 Flash
-  console.log('\n[BƯỚC 1/4] Phòng Nội Dung Gemini 3.8 Flash sáng tạo bài đăng cho Fanpage, Instagram & Threads...');
-  const post = await generatePost({
+  // BƯỚC 1: Nghiên cứu & Hội đồng 6 vai trò (F6/F7)
+  console.log('\n[BƯỚC 1/4] Research Agent & Hội đồng 6 vai trò thảo luận chiến lược...');
+  const researchBrief = await researchAgent.conductResearch({
+    topic,
+    pillar: slot.pillar_id || slot.pillar_name,
+    offline: offline || dryRun,
+    dryRun
+  });
+  const meeting = await agentCouncil.runMultiAgentRoundtable({
+    slot,
+    researchBrief,
+    dryRun,
+    offline: offline || dryRun
+  });
+  const post = meeting.generatedCopy || await generatePost({
     topic,
     pillar: slot.pillar_name,
     format: shouldMakeVideo ? 'REELS_ROOM_TOUR' : 'OMNICHANNEL_POST'
   });
-  console.log(`   -> Tiêu đề: "${post.title}"`);
+  console.log(`   -> WorkOrder: ${meeting.workOrderId} | Tiêu đề: "${post.title}"`);
 
-  // BƯỚC 2: Tự động kiểm duyệt & tự phê duyệt nội bộ
-  console.log('\n[BƯỚC 2/4] Phòng Kiểm Duyệt tự động rà soát chính sách & tự phê duyệt (Không làm phiền người dùng)...');
-  const check = evaluateContent({ message: post.facebook_caption || post.body });
+  // BƯỚC 2: Kiểm duyệt đồng bộ cả 3 kênh (Rule 5 Omnichannel Critic)
+  console.log('\n[BƯỚC 2/4] Phòng Kiểm Duyệt rà soát đồng bộ 3 kênh (Rule 5)...');
+  const check = evaluateOmnichannelCaptions({
+    facebook_caption: post.facebook_caption || post.body,
+    instagram_caption: post.instagram_caption || post.body,
+    threads_caption: post.threads_caption || post.body,
+    title: post.title
+  });
   if (!check.allowed) {
-    throw new Error(`Nội dung không đạt chuẩn an toàn Meta: ${check.violations.join('; ')}`);
+    throw new Error(`Nội dung không đạt chuẩn an toàn Meta/Rule 5: ${check.violations.join('; ')}`);
   }
-  console.log(`   -> Trạng thái phê duyệt: ✅ TỰ PHÊ DUYỆT NỘI BỘ 100% (Điểm an toàn: ${check.score}/100)`);
+  console.log(`   -> Trạng thái phê duyệt: ✅ PASS CẢ 3 KÊNH`);
 
-  // BƯỚC 3: Tự động sản xuất Media bằng Google Flow / Veo hoặc Google Flow / Nano Banana
+  // Nếu dry-run / offline -> Dừng trước khi sinh media tốn phí hoặc mở browser
+  if (dryRun || offline || process.env.AUTO_PUBLISH === 'false') {
+    console.log('\n[BƯỚC 3-4/4] Chế độ Dry-Run/Offline: Bỏ qua dựng media tốn phí & xuất bản thật.');
+    const simResult = await publishDirect({
+      platform: validatedTargets.join(','),
+      contentType: shouldMakeVideo ? 'reel' : 'photo',
+      facebook_caption: check.results.facebook.normalizedMessage,
+      instagram_caption: check.results.instagram.normalizedMessage,
+      threads_caption: check.results.threads.normalizedMessage,
+      dryRun: true,
+      offline: true
+    });
+    return { post, meeting, media: null, publishResult: simResult, published: false, dryRun: true };
+  }
+
+  // BƯỚC 3: Sản xuất Media (nối timeline kịch bản video vào renderer)
   let generatedMedia = null;
   if (shouldMakeVideo) {
-    console.log('\n[BƯỚC 3/4] Phòng Video Google Flow / Veo / Omni Flash đang dựng Room Tour 9:16...');
+    console.log('\n[BƯỚC 3/4] Phòng Video đang dựng Room Tour 9:16 theo storyboard...');
+    const videoScript = post.script || await generateVideoScript({ concept: topic });
     generatedMedia = await videoEngine.renderReel({
       title: post.title || topic,
-      hook: post.hook,
-      callToAction: post.call_to_action,
+      hook: post.hook || (videoScript && videoScript.hook),
+      callToAction: post.call_to_action || (videoScript && videoScript.call_to_action),
+      timeline: (videoScript && videoScript.timeline) || [],
       duration: parseInt(process.env.VIDEO_DEFAULT_DURATION_SECONDS || '8', 10),
       mode: 'AUTO'
     });
   } else {
-    console.log('\n[BƯỚC 3/4] Phòng Thiết Kế Ảnh AI (Nano Banana 2.1 + Google Flow) đang tạo ảnh phòng 4K...');
+    console.log('\n[BƯỚC 3/4] Phòng Thiết Kế Ảnh AI đang tạo ảnh phòng 4K...');
     generatedMedia = await imageEngine.generateImage({
       prompt: post.visual_prompt || topic,
       title: post.title || topic,
@@ -206,45 +202,54 @@ async function runAutonomousCycle({
   }
   console.log(`   -> Media thành phẩm: ${generatedMedia.file_path} (Engine: ${generatedMedia.source_engine || generatedMedia.source})`);
 
-  // BƯỚC 4: Xuất bản tự động đồng loạt lên Meta Fanpage + Instagram + Threads
-  if (dryRun || process.env.AUTO_PUBLISH === 'false') {
-    console.log('\n[BƯỚC 4/4] Chế độ Dry-Run: Đã hoàn tất tạo nội dung + media, bỏ qua bước bấm nút Đăng.');
-    return { post, media: generatedMedia, published: false, dryRun: true };
-  }
-
-  console.log('\n[BƯỚC 4/4] Phòng Xuất Bản Đa Kênh tự động đăng lên Meta Fanpage + Instagram + Threads...');
+  // BƯỚC 4: Xuất bản tự động có đối soát trạng thái từng kênh
+  console.log('\n[BƯỚC 4/4] Phòng Xuất Bản Đa Kênh đang đăng & đối soát từng tài khoản...');
   const publishResult = await publishDirect({
-    platform,
+    platform: validatedTargets.join(','),
     contentType: shouldMakeVideo ? 'reel' : 'photo',
-    message: post.facebook_caption || post.body,
-    facebook_caption: post.facebook_caption || post.body,
-    instagram_caption: post.instagram_caption,
-    threads_caption: post.threads_caption,
+    message: check.results.facebook.normalizedMessage,
+    facebook_caption: check.results.facebook.normalizedMessage,
+    instagram_caption: check.results.instagram.normalizedMessage,
+    threads_caption: check.results.threads.normalizedMessage,
     media_url: generatedMedia.file_path,
     visual_prompt: post.visual_prompt,
     spaceArchetype: post.space_archetype_id || generatedMedia.spaceArchetype,
+    slotId: slot.slot_id || null,
+    workOrderId: meeting.workOrderId,
     force
   });
 
-  if (slot.slot_id && (publishResult.success || publishResult.partialSuccess)) {
-    markSlotPublished(slot.slot_id, {
-      postTitle: post.title,
-      mediaUrl: generatedMedia.file_path,
-      spaceArchetype: post.space_archetype_id || generatedMedia.spaceArchetype
-    });
+  if (slot.slot_id) {
+    if (publishResult.success) {
+      updateSlotStatus(slot.slot_id, 'PUBLISHED', {
+        postTitle: post.title,
+        mediaUrl: generatedMedia.file_path,
+        spaceArchetype: post.space_archetype_id || generatedMedia.spaceArchetype,
+        successfulTargets: publishResult.successfulTargets,
+        failedTargets: []
+      });
+    } else if (publishResult.partialSuccess) {
+      updateSlotStatus(slot.slot_id, 'PARTIAL', {
+        postTitle: post.title,
+        mediaUrl: generatedMedia.file_path,
+        spaceArchetype: post.space_archetype_id || generatedMedia.spaceArchetype,
+        successfulTargets: publishResult.successfulTargets,
+        failedTargets: publishResult.failedTargets
+      });
+    }
   }
 
   console.log('\n================================================================');
-  console.log('🎉 CHU TRÌNH CÔNG TY AI AGENT HOÀN TẤT TỰ ĐỘNG 100%!');
+  console.log('🎉 CHU TRÌNH CÔNG TY AI AGENT HOÀN TẤT!');
   console.log('================================================================');
-  console.log(JSON.stringify(publishResult, null, 2));
-  return { post, media: generatedMedia, publishResult };
+  return { post, meeting, media: generatedMedia, publishResult };
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const healthOnly = args.includes('--health-only');
   const dryRun = args.includes('--dry-run');
+  const offline = args.includes('--offline');
   const force = args.includes('--force');
 
   let mediaMode = 'auto';
@@ -262,43 +267,31 @@ async function main() {
     return;
   }
 
-  const lock = acquireProcessLock();
+  const lock = acquireProcessLock('company_orchestrator', { ttlMs: 30 * 60 * 1000 });
   if (!lock.acquired) {
-    console.log(`⚠️ Chu trình khác (PID ${lock.holderPid}, bắt đầu lúc ${lock.startedAt}) đang chạy. Bỏ qua lượt này để tránh xung đột Profile 38.`);
+    console.warn(`⚠️ Một tiến trình điều phối khác đang chạy (PID: ${lock.holderPid || 'unknown'}). Bỏ qua để tránh xung đột.`);
+    process.exitCode = 0;
     return;
   }
 
-  const headless = process.env.PLAYWRIGHT_HEADLESS !== 'false';
   try {
-    await checkSystemHealth();
-    if (!dryRun) {
-      await playwrightManager.beginBatchSession({ headless });
+    const result = await runAutonomousCycle({ customTopic, mediaMode, platform, dryRun, offline, force });
+    if (result && result.publishResult && !result.publishResult.success && !result.publishResult.partialSuccess && !dryRun) {
+      process.exitCode = 1;
     }
-    await runAutonomousCycle({ customTopic, mediaMode, platform, dryRun, force });
   } finally {
-    if (!dryRun) {
-      await playwrightManager.endBatchSession().catch(() => {});
-    }
     lock.release();
   }
 }
 
 if (require.main === module) {
-  main()
-    .then(() => {
-      process.exitCode = 0;
-      const drainTimer = setTimeout(() => process.exit(0), 500);
-      if (drainTimer.unref) drainTimer.unref();
-    })
-    .catch(err => {
-      console.error('❌ Lỗi điều phối trung tâm:', err.message);
-      process.exit(1);
-    });
+  main().catch(err => {
+    console.error('❌ Lỗi Master Orchestrator:', err.message);
+    process.exit(1);
+  });
 }
 
 module.exports = {
   checkSystemHealth,
-  pickTodaySlot,
-  markSlotPublished,
   runAutonomousCycle
 };

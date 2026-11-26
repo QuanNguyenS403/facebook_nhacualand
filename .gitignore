@@ -25,6 +25,12 @@ data/images/
 data/videos/
 data/screenshots/
 data/outputs/
+data/backups/
+data/knowledge/
+data/meetings/
+data/*.db
+data/*.db-wal
+data/*.db-shm
 data/publish_history.json
 data/scheduled_calendar.json
 

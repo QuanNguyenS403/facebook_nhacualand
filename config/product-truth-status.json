@@ -1,22 +1,21 @@
 {
-  "version": "2.0.0",
+  "version": "3.0.0",
   "domain": "nhacualand.com",
   "vertical": "room_rental_and_real_estate",
   "publishable": true,
-  "live_inventory_verified": true,
-  "approved_claims": [
-    "Ảnh phòng chụp thật 100% tại căn hộ/dãy trọ",
-    "Giá thuê niêm yết minh bạch, không phí ẩn",
-    "Hợp đồng thuê nhà có điều khoản rõ ràng",
-    "Hệ thống an ninh và PCCC đảm bảo tiêu chuẩn"
+  "verification_scope": "PER_LISTING_AND_ASSET",
+  "live_inventory_verified": false,
+  "require_listing_verification": true,
+  "require_asset_rights_check": true,
+  "freshness_max_hours": 24,
+  "demo_slug_prefixes": [
+    "mau-"
   ],
-  "approved_offers": [
-    "OFFER_COC_GIU_PHONG",
-    "OFFER_FREE_DICH_VU",
-    "OFFER_COMBO_DON_PHONG"
+  "fallback_topic_type": "renter_education",
+  "approved_general_claims": [
+    "Khuyến khích người thuê đi xem phòng trực tiếp vào ban ngày để kiểm tra ánh sáng và độ ẩm",
+    "Khuyến khích hỏi rõ bảng chi phí điện, nước, dịch vụ trước khi đặt cọc",
+    "Khuyến khích kiểm tra hợp đồng, khóa an ninh và lối thoát hiểm PCCC"
   ],
-  "approved_rights": [
-    "Bản quyền hình ảnh phòng thuộc quyền sở hữu/đại lý của Nhà Của Land"
-  ],
-  "note": "Verified room rental catalog for Nhacualand.com"
+  "note": "Room-specific claims, prices, and real photos require per-listing & per-asset verification in SQLite (lib/source-truth.js)."
 }
