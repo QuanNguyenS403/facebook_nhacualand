@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "domain": "nhacualand.com",
+  "vertical": "room_rental_and_real_estate",
+  "publishable": true,
+  "live_inventory_verified": true,
+  "approved_claims": [
+    "Ảnh phòng chụp thật 100% tại căn hộ/dãy trọ",
+    "Giá thuê niêm yết minh bạch, không phí ẩn",
+    "Hợp đồng thuê nhà có điều khoản rõ ràng",
+    "Hệ thống an ninh và PCCC đảm bảo tiêu chuẩn"
+  ],
+  "approved_offers": [
+    "OFFER_COC_GIU_PHONG",
+    "OFFER_FREE_DICH_VU",
+    "OFFER_COMBO_DON_PHONG"
+  ],
+  "approved_rights": [
+    "Bản quyền hình ảnh phòng thuộc quyền sở hữu/đại lý của Nhà Của Land"
+  ],
+  "note": "Verified room rental catalog for Nhacualand.com"
+}

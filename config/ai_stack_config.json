@@ -1,0 +1,55 @@
+{
+  "version": "3.0.0",
+  "domain": "nhacualand.com",
+  "workspace": "D:/Facebook",
+  "autonomous_mode": "FULL_100",
+  "llm": {
+    "provider": "google-genai",
+    "default_model": "gemini-3.8-flash",
+    "creative_model": "gemini-4-argon",
+    "fast_model": "gemini-3.5-flash-lite",
+    "tts_model": "gemini-3.8-flash-tts",
+    "temperature": 0.7,
+    "max_tokens": 2048
+  },
+  "image_generation": {
+    "enabled": true,
+    "engines": [
+      "GOOGLE_GENAI_NANO_BANANA",
+      "GOOGLE_FLOW_WEB_STUDIO",
+      "PLAYWRIGHT_BRAND_CARD_RENDERER"
+    ],
+    "default_model": "gemini-nano-banana-2.1",
+    "pro_model": "gemini-3-pro-image",
+    "flow_url": "https://flow.google.com/",
+    "default_aspect_ratio": "4:5",
+    "default_size": "2K",
+    "aspect_ratios": [
+      "1:1",
+      "4:5",
+      "9:16",
+      "16:9"
+    ],
+    "aesthetic": "modern bright Vietnamese studio apartment, clean cozy interior, large sunny balcony window, warm oak wooden floor, comfortable bed, tidy kitchen corner, architectural real estate photography, photorealistic, 8k quality"
+  },
+  "video_rendering": {
+    "enabled": true,
+    "engines": [
+      "GOOGLE_FLOW_VEO_WEB",
+      "GOOGLE_GENAI_OMNI_FLASH",
+      "HYPERFRAMES_FFMPEG_CINEMATIC"
+    ],
+    "default_model": "gemini-omni-1.1-flash",
+    "flow_url": "https://flow.google.com/",
+    "aspect_ratio": "9:16",
+    "resolution": {
+      "label": "1080p",
+      "width": 1080,
+      "height": 1920
+    },
+    "fps": 30,
+    "audio_lufs": -14,
+    "max_duration_seconds": 40,
+    "optimal_duration_seconds": 8
+  }
+}

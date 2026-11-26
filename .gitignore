@@ -1,0 +1,34 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Browser Profiles & Session Data (sensitive cookies/sessions & large files)
+data/browser_profile/
+data/chrome_flow_profile/
+**/browser_profile/
+
+# Test Temporary Artifacts
+tests/.e2e_tmp/
+tests/.m3_probe*/
+**/.e2e_tmp/
+
+# Generated Media & Runtime Outputs
+data/images/
+data/videos/
+data/screenshots/
+data/outputs/
+data/publish_history.json
+data/scheduled_calendar.json
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.obsidian/

@@ -1,0 +1,70 @@
+{
+  "brand_id": "nhacualand",
+  "name": "Nhà Của Land",
+  "identity_scope": "NON_CAPTION_BIO_WEBSITE_AND_ASSET_GUARD_ONLY",
+  "tagline": "Tìm phòng ưng ý, an cư trọn vẹn — Không gian sống tiện nghi",
+  "operator": "Nhà Của Land Real Estate & Rental AI Enterprise",
+  "website": "https://nhacualand.com",
+  "hotline": "0981 753 082",
+  "admin_email": "quannguyentop1lux@gmail.com",
+  "allowed_admin_emails": [
+    "quannguyentop1lux@gmail.com",
+    "ducquan16102006@gmail.com"
+  ],
+  "social": {
+    "facebook_page_id": "1337253129481940",
+    "facebook_page_name": "Nhacualand",
+    "facebook_url": "https://www.facebook.com/nhacualand",
+    "instagram_business_id": "",
+    "instagram_username": "nhacualand",
+    "instagram_url": "https://www.instagram.com/nhacualand/",
+    "threads_user_id": "",
+    "threads_username": "nhacualand",
+    "threads_url": "https://www.threads.com/@nhacualand"
+  },
+  "colors": {
+    "primary": "#0D5C75",
+    "accent": "#FF7A00",
+    "neutral_light": "#F7F9FA",
+    "secondary": "#2B8A3E",
+    "text_dark": "#1F2937",
+    "text_light": "#FFFFFF"
+  },
+  "typography": {
+    "heading": "Plus Jakarta Sans, Montserrat, sans-serif",
+    "body": "Inter, -apple-system, sans-serif"
+  },
+  "categories": [
+    "Phòng trọ cao cấp khép kín",
+    "Phòng Studio full nội thất",
+    "Căn hộ dịch vụ 1PN - 2PN",
+    "Chung cư mini an ninh 24/7",
+    "Phòng có gác lửng thoáng mát",
+    "Phòng cho sinh viên và người đi làm gần trung tâm"
+  ],
+  "caption_policy": {
+    "sentence_range": [2, 4],
+    "max_words": 90,
+    "max_chars": 450,
+    "threads_max_chars": 500,
+    "max_hashtags": 2,
+    "caption_safe_hashtags": [
+      "#phongtro",
+      "#chothuephong"
+    ],
+    "allow_brand_name": false,
+    "allow_website_or_hotline": false,
+    "allow_offers_or_cta": false,
+    "allow_prices": false,
+    "allow_superlatives": false
+  },
+  "persona": {
+    "role": "Người đi thuê phòng chia sẻ trải nghiệm đời thực, mộc mạc và gần gũi",
+    "tone": "Giản dị, bình dân, chân thực, nói thẳng vào nỗi vất vả và mong muốn nhỏ khi tìm phòng ở",
+    "language": "Tiếng Việt đời thường, ngắn gọn 2 đến 4 câu, không quảng cáo, không hô hào, không nhắc tên thương hiệu"
+  },
+  "hashtags": [
+    "#phongtro",
+    "#chothuephong"
+  ]
+}

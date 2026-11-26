@@ -1,0 +1,50 @@
+{
+  "name": "nhacualand-ai-agent-company",
+  "version": "3.0.0",
+  "description": "Công ty AI Agent tự động hóa 100% đa kênh (Meta Fanpage + Instagram + Threads + Google Flow/Veo/Nano Banana) chỉ duy nhất tại D:\\Facebook cho Nhà Của Land (nhacualand.com)",
+  "main": "scripts/company_orchestrator.js",
+  "scripts": {
+    "orchestrate": "node scripts/company_orchestrator.js",
+    "orchestrate:health": "node scripts/company_orchestrator.js --health-only",
+    "orchestrate:dry": "node scripts/company_orchestrator.js --dry-run",
+    "orchestrate:video": "node scripts/company_orchestrator.js --media video",
+    "orchestrate:image": "node scripts/company_orchestrator.js --media image",
+    "publish": "node scripts/publish_now.js",
+    "publish:all": "node scripts/publish_now.js --platform all",
+    "publish:fb": "node scripts/publish_now.js --platform facebook",
+    "publish:ig": "node scripts/publish_now.js --platform instagram",
+    "publish:threads": "node scripts/publish_now.js --platform threads",
+    "image:generate": "node scripts/run_image_agent.js",
+    "video:veo": "node scripts/run_google_flow_agent.js",
+    "video:session": "node scripts/setup_google_flow_session.js",
+    "social:session": "node scripts/setup_social_session.js",
+    "social:check": "node scripts/check_social_sessions.js",
+    "setup:meta": "node scripts/setup_nhacualand_meta.js",
+    "set:token": "node scripts/set_token.js",
+    "plan": "node scripts/schedule_month.js",
+    "progress": "node scripts/check_progress.js",
+    "check:isolation": "node scripts/verify_account_isolation.js",
+    "test": "node scripts/test_ai_pipeline.js",
+    "test:token": "node scripts/test_token.js",
+    "test:playwright": "node scripts/test_playwright.js"
+  },
+  "keywords": [
+    "facebook-fanpage",
+    "instagram",
+    "threads",
+    "google-flow",
+    "google-veo",
+    "nano-banana",
+    "omni-flash",
+    "ai-agent-company",
+    "hyperframes",
+    "nhacualand"
+  ],
+  "author": "Nhà Của Land (nhacualand.com)",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^2.31.0",
+    "playwright": "^1.64.1",
+    "puppeteer-core": "^25.16.0"
+  }
+}

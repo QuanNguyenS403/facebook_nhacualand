@@ -1,0 +1,37 @@
+{
+  "version": "3.0.0",
+  "workspace": "D:/Facebook",
+  "environment": "PRODUCTION",
+  "autonomous_mode": "FULL_100",
+  "require_human_approval": false,
+  "auto_publish": true,
+  "dry_run": false,
+  "external_publishing": true,
+  "platforms": [
+    "facebook",
+    "instagram",
+    "threads"
+  ],
+  "creative_tools": [
+    "google_flow_veo_video",
+    "google_flow_image_studio",
+    "gemini_nano_banana_image",
+    "gemini_omni_flash_video",
+    "hyperframes_skills"
+  ],
+  "browser": {
+    "user_data_dir": "D:/Facebook/data/browser_profile",
+    "profile_directory": "Profile 38",
+    "headless": true,
+    "prefer_cdp": true,
+    "cdp_port": 9222
+  },
+  "graph_api": {
+    "version": "v21.0",
+    "threads_version": "v1.0",
+    "rate_limit_cooldown_ms": 1000
+  },
+  "timezone": "Asia/Ho_Chi_Minh",
+  "default_post_status": "PUBLISHED",
+  "auto_schedule_days_in_advance": 7
+}

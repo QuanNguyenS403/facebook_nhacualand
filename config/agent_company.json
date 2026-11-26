@@ -1,0 +1,61 @@
+{
+  "company_name": "Nhà Của Land Autonomous AI Agent Company",
+  "workspace_root": "D:/Facebook",
+  "isolation_boundary": "D:/Facebook",
+  "website": "https://nhacualand.com",
+  "admin_email": "quannguyentop1lux@gmail.com",
+  "autonomy_level": "100_PERCENT_ZERO_HUMAN_INTERVENTION",
+  "require_human_approval": false,
+  "departments": [
+    {
+      "id": "CEO_ORCHESTRATOR",
+      "name": "Ban Điều Hành Trung Tâm",
+      "entrypoint": "scripts/company_orchestrator.js",
+      "schedule_planner": "lib/content-planner.js",
+      "responsibility": "Lập kế hoạch truyền thông tuần/tháng và điều phối tự động 100% từ sáng tạo đến xuất bản đa kênh."
+    },
+    {
+      "id": "CREATIVE_COPYWRITER",
+      "name": "Phòng Nội Dung Đa Kênh Gemini AI",
+      "entrypoint": "services/ai_pipeline.js",
+      "models": ["gemini-3.8-flash", "gemini-4-argon"],
+      "responsibility": "Sáng tạo bài đăng, hook, hashtag và kịch bản Room Tour tối ưu riêng cho Facebook Fanpage, Instagram và Threads."
+    },
+    {
+      "id": "VISUAL_IMAGE_STUDIO",
+      "name": "Phòng Thiết Kế & Tạo Ảnh AI (Google Flow & Nano Banana)",
+      "entrypoint": "services/image_engine.js",
+      "tools": ["flow.google.com", "gemini-nano-banana-2.1", "gemini-3-pro-image"],
+      "output_dir": "D:/Facebook/data/images",
+      "responsibility": "Tự động tạo ảnh kiến trúc/nội thất căn hộ 4K (4:5, 1:1, 9:16, 16:9) và ảnh infographic bất động sản."
+    },
+    {
+      "id": "CINEMATIC_VIDEO_VEO",
+      "name": "Phòng Sản Xuất Video Room Tour (Google Flow / Veo & Hyperframes)",
+      "entrypoint": "services/video-engine.js",
+      "sub_engines": ["services/veo_video_engine.js", "services/google_flow_agent.js", ".agents/skills/*"],
+      "tools": ["flow.google.com", "gemini-omni-1.1-flash", "20-hyperframes-skills"],
+      "output_dir": "D:/Facebook/data/videos",
+      "responsibility": "Tự động sản xuất video Room Tour 9:16 (1080x1920) chân thực cho Facebook Reels, Instagram Reels và Threads."
+    },
+    {
+      "id": "COMPLIANCE_GOVERNANCE",
+      "name": "Phòng Kiểm Duyệt Tự Động & Bảo Vệ Tài Khoản",
+      "entrypoint": "lib/governance.js",
+      "responsibility": "Tự phê duyệt nội dung 100% không qua người dùng, kiểm soát tần suất theo từng nền tảng và khóa phân lập Brand Asset."
+    },
+    {
+      "id": "OMNICHANNEL_PUBLISHER",
+      "name": "Phòng Xuất Bản Tự Động Đa Kênh (Meta Fanpage + Instagram + Threads)",
+      "entrypoint": "services/publish-executor.js",
+      "channels": {
+        "facebook_fanpage": ["lib/facebook-api.js", "services/meta_playwright_publisher.js"],
+        "instagram": ["lib/facebook-api.js", "services/instagram_playwright_publisher.js"],
+        "threads": ["lib/facebook-api.js", "services/threads_playwright_publisher.js"]
+      },
+      "proof_dir": "D:/Facebook/data/screenshots",
+      "responsibility": "Đăng tải trực tiếp không qua duyệt tay lên Fanpage, Instagram và Threads, chụp ảnh bằng chứng đối soát."
+    }
+  ]
+}
+

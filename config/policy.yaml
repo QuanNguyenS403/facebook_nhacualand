@@ -1,0 +1,30 @@
+# Policy config for Nhacualand Real Estate & Room Rental Autonomous AI Company
+version: "3.0.0"
+workspace: "D:/Facebook"
+isolation_mode: STRICT_STANDALONE_D_FACEBOOK
+brand: nhacualand
+vertical: room_rental_and_real_estate
+environment: production
+autonomous_mode: FULL_100
+dry_run: false
+external_publishing: true
+human_approval_required: false
+self_approval: ALWAYS_ALLOW
+strict_brand_asset_guard: true
+allowed_channels:
+  - facebook_fanpage
+  - instagram
+  - threads
+allowed_media_engines:
+  - google_flow_veo
+  - google_flow_image
+  - gemini_nano_banana_2_1
+  - gemini_3_pro_image
+  - gemini_omni_1_1_flash
+  - hyperframes_20_skills
+paid_acquisition: false
+ads_budget_vnd: 0
+capital_gate: PASS
+legacy_config: PURGED
+ai_disclosure: transparent
+claim_requirement: verified_real_room_listings

@@ -1,0 +1,42 @@
+{
+  "name": "@jridgewell/resolve-uri",
+  "version": "3.1.2",
+  "description": "Resolve a URI relative to an optional base URI",
+  "keywords": [
+    "resolve",
+    "uri",
+    "url",
+    "path"
+  ],
+  "author": "Justin Ridgewell <justin@ridgewell.name>",
+  "license": "MIT",
+  "repository": "https://github.com/jridgewell/resolve-uri",
+  "main": "dist/resolve-uri.umd.js",
+  "module": "dist/resolve-uri.mjs",
+  "types": "dist/types/resolve-uri.d.ts",
+  "exports": {
+    ".": [
+      {
+        "types": "./dist/types/resolve-uri.d.ts",
+        "browser": "./dist/resolve-uri.umd.js",
+        "require": "./dist/resolve-uri.umd.js",
+        "import": "./dist/resolve-uri.mjs"
+      },
+      "./dist/resolve-uri.umd.js"
+    ],
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "run-s -n build:*",
+    "build:rollup": "rollup -c rollup.config.js",
+    "build:ts": "tsc --project tsconfig.build.json",
+    "lint": "run-s -n lint:*",
+    "lint:prettier": "npm run test:lint:prettier -- --write",
+    "lint:ts": "npm run test:lint:ts 
